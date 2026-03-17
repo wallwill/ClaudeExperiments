@@ -1,0 +1,14 @@
+{
+  "name": "armt",
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix src/backend\" \"npm run dev --prefix src/frontend\"",
+    "setup": "npm install --prefix src/backend && npm install --prefix src/frontend && npm run db:push",
+    "db:push": "npm run db:push --prefix src/backend",
+    "db:migrate": "npm run db:migrate --prefix src/backend",
+    "db:seed": "npm run db:seed --prefix src/backend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}

@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AgentType {
+  ASSISTIVE
+  AUTONOMOUS
+  COMPOSITE
+}
+
+enum LifecycleState {
+  PROPOSED
+  IN_REVIEW
+  APPROVED
+  ACTIVE
+  RESTRICTED
+  DEPRECATED
+  RETIRED
+}
+
+enum RiskTier {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum DataClassification {
+  PUBLIC
+  INTERNAL
+  CONFIDENTIAL
+  RESTRICTED
+}
+
+model BusinessCapability {
+  id                 String   @id @default(uuid())
+  name               String   @unique
+  valueStream        String?
+  strategicObjective String?
+  agents             Agent[]
+  createdAt          DateTime @default(now())
+}
+
+model Agent {
+  id                   String             @id @default(uuid())
+  name                 String
+  description          String
+  agentType            AgentType
+  lifecycleState       LifecycleState     @default(PROPOSED)
+  riskTier             RiskTier
+  dataClassification   DataClassification
+  environment          String
+  businessCapabilityId String?
+  businessCapability   BusinessCapability? @relation(fields: [businessCapabilityId], references: [id])
+  owner                Owner?
+  auditLogs            AuditLog[]
+  complianceRecords    ComplianceRecord[]
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  // Phase 2: Integration entity (stub — not implemented in MVP)
+  // integrations     Integration[]
+}
+
+model Owner {
+  id             String   @id @default(uuid())
+  agentId        String   @unique
+  businessOwner  String
+  technicalOwner String
+  agent          Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model ComplianceRecord {
+  id                 String    @id @default(uuid())
+  agentId            String
+  approvedBy         String
+  approvalDate       DateTime  @default(now())
+  recertificationDue DateTime?
+  notes              String?
+  agent              Agent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  agentId   String
+  action    String
+  changedBy String   @default("system")
+  details   String?
+  agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
